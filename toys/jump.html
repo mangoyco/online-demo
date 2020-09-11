@@ -1,64 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <style>
-    *{
+    * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    body{
+
+    body {
       font-size: 16px;
     }
-    .warp{
+
+    .warp {
       width: 100%;
     }
-    .row{
+
+    .row {
       width: 100%;
       height: 4rem;
-      background-color:silver;
+      background-color: silver;
       display: flex;
       justify-content: center;
     }
-    .row .cell{
+
+    .row .cell {
       height: 100%;
       width: 4rem;
       background-color: rgb(53, 45, 45);
       border-radius: 50%;
       margin: 0 4px;
     }
-    .row .cell .die{
+
+    .row .cell.die {
       background-color: #eee;
+    }
+    .row .cell.waiting{
+      border: 1px solid rgb(245, 137, 137);
+      box-shadow: 0 0 5px 1px rgb(245, 137, 137)
     }
   </style>
 </head>
+
 <body>
-  <div class="warp">
+  <div id="warp" class="warp">
   </div>
   <script>
-    var arr = Array.from({length:1},(v,i)=>i + 1)
-    var f = document.createDocumentFragment()
-    arr.forEach(n=>{
-      let row = div('row')
-      for (let i = 0; i < n; i++) {
-        let element = div('cell')
-        element._row = n
-        element._col = i
-        row.appendChild(element)
+    var warp = document.getElementById('warp')
+    var waiting = false
+    var waitingCell
+
+    function delFirst(event) {
+      const list = event.target.classList
+      if(list.contains('cell')){
+        list.add('die')
+        // warp.removeEventListener('click',arguments.callee)
+        warp.addEventListener('click',jump)
       }
-      f.appendChild(row)
-    })
-    document.querySelector('.warp').appendChild(f)
+    }
 
+    function jump(event) {
+      const target = event.target
+      const iswait = target.classList.contains('waiting')
+      if(iswait)return
+      const isdie = target.classList.contains('die')
+      // if(!waiting && isdie)return
 
-    function div(c){
+      if(waiting){
+        if(!isdie)return
+        if(canJump(target)){
+          waitingCell.classList.remove('waiting')
+          waitingCell.classList.add('die')
+          target.classList.remove('die')
+          waiting = false
+          delBwtnCell(target)
+          waitingCell = undefined
+        }
+      }else{
+        if(isdie)return
+        target.classList.add('waiting')
+        waiting = true
+        waitingCell = target
+      }
+    }
+
+    function delBwtnCell(target) {
+      let lrow = target._row >= waitingCell._row ? target._row : waitingCell._row
+      let lcol = target._col >= waitingCell._col ? target._col : waitingCell._col
+      let difr = Math.abs(target._row - waitingCell._row)
+      let difc = Math.abs(target._col - waitingCell._col)
+      // let trow = target._row
+      // let tcol = target._col
+      // let wrow = waitingCell._row
+      // let wcol = waitingCell._col
+      let resrow = lrow - difr / 2
+      let rescol = lcol - difc / 2
+
+      document.getElementsByClassName('row')[resrow].getElementsByClassName('cell')[rescol].classList.add('die')
+    }
+
+    function canJump(tocell) {
+      return (Math.abs(tocell._row - waitingCell._row) === 2) || (Math.abs(tocell._row - waitingCell._row) === 2)
+    }
+
+    function InitUI() {
+      var arr = Array.from({ length: 6 }, (v, i) => i + 1)
+      var f = document.createDocumentFragment()
+      arr.forEach(n => {
+        let row = div('row')
+        for (let i = 0; i < n; i++) {
+          let element = div('cell')
+          element._row = n
+          element._col = i
+          row.appendChild(element)
+        }
+        f.appendChild(row)
+      })
+      warp.appendChild(f)
+    }
+
+    function div(c) {
       let d = document.createElement('div')
       d.classList.add(c)
       return d
     }
+
+    InitUI()
+    warp.addEventListener('click',delFirst,{once:true})
   </script>
 </body>
+
 </html>
