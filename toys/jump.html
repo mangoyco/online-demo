@@ -14,6 +14,9 @@
 
     body {
       font-size: 16px;
+      height: 100vh;
+      padding-top: 50px;
+      background-color: silver;
     }
 
     .warp {
@@ -23,7 +26,6 @@
     .row {
       width: 100%;
       height: 4rem;
-      background-color: silver;
       display: flex;
       justify-content: center;
     }
@@ -34,6 +36,8 @@
       background-color: rgb(53, 45, 45);
       border-radius: 50%;
       margin: 0 4px;
+      transition-property:background-color,border,box-shadow;
+      transition: .3s;
     }
 
     .row .cell.die {
@@ -52,7 +56,8 @@
   <script>
     var warp = document.getElementById('warp')
     var waiting = false
-    var waitingCell
+    var waitingCell,
+        allcount = 0
 
     function delFirst(event) {
       const list = event.target.classList
@@ -65,20 +70,27 @@
 
     function jump(event) {
       const target = event.target
+      if(!target.classList.contains('cell'))return
       const iswait = target.classList.contains('waiting')
-      if(iswait)return
+      if(iswait){
+        target.classList.remove('waiting')
+        waiting = false
+        return
+      }
       const isdie = target.classList.contains('die')
       // if(!waiting && isdie)return
 
       if(waiting){
         if(!isdie)return
-        if(canJump(target)){
+        const result = canJump(target)
+        if(result.res){
           waitingCell.classList.remove('waiting')
           waitingCell.classList.add('die')
           target.classList.remove('die')
           waiting = false
-          delBwtnCell(target)
+          result.cell.classList.add('die')
           waitingCell = undefined
+          isWin()
         }
       }else{
         if(isdie)return
@@ -88,34 +100,57 @@
       }
     }
 
-    function delBwtnCell(target) {
+    function getBwtnCell(target) {
       let lrow = target._row >= waitingCell._row ? target._row : waitingCell._row
       let lcol = target._col >= waitingCell._col ? target._col : waitingCell._col
       let difr = Math.abs(target._row - waitingCell._row)
       let difc = Math.abs(target._col - waitingCell._col)
-      // let trow = target._row
-      // let tcol = target._col
-      // let wrow = waitingCell._row
-      // let wcol = waitingCell._col
       let resrow = lrow - difr / 2
       let rescol = lcol - difc / 2
 
-      document.getElementsByClassName('row')[resrow].getElementsByClassName('cell')[rescol].classList.add('die')
+      return document.getElementsByClassName('row')[resrow - 1].getElementsByClassName('cell')[rescol - 1]
     }
 
     function canJump(tocell) {
-      return (Math.abs(tocell._row - waitingCell._row) === 2) || (Math.abs(tocell._row - waitingCell._row) === 2)
+      let rowdif = Math.abs(tocell._row - waitingCell._row)
+      let coldif = Math.abs(tocell._col - waitingCell._col)
+      if((rowdif === 0 || rowdif === 2) && (coldif === 0 || coldif === 2) && !(rowdif === 0 && coldif === 0)){
+        let bwtcell = getBwtnCell(tocell)
+        let bol = bwtcell.classList.contains('die')
+        return {
+          res:true && !bol,
+          cell:bwtcell
+        }
+      }else{
+        return {
+          res:false,
+          cell:null
+        }
+      }
+      // return (Math.abs(tocell._row - waitingCell._row) === 2) || (Math.abs(tocell._col - waitingCell._col) === 2)
+    }
+
+    function isWin(){
+      let count = document.getElementsByClassName('die').length
+      if((allcount - count) === 1){
+        alert('You win')
+        warp.innerHTML = ''
+        waiting = false
+        allcount = 0
+        InitUI()
+      }
     }
 
     function InitUI() {
       var arr = Array.from({ length: 6 }, (v, i) => i + 1)
       var f = document.createDocumentFragment()
       arr.forEach(n => {
+        allcount += n
         let row = div('row')
         for (let i = 0; i < n; i++) {
           let element = div('cell')
           element._row = n
-          element._col = i
+          element._col = i + 1
           row.appendChild(element)
         }
         f.appendChild(row)
