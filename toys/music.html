@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>Document</title>
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_1345114_5mg6q8e03fm.css">
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        html,body{
+            height: 100%;
+        }
+        .container{
+            position: relative;
+            width: 100%;
+            height: 100%;
+            /* background-size: 120% 120%;      */
+            overflow: hidden;
+        }
+        /* @keyframes bgimg {
+            from{opacity: 0;};
+            to{opacity: 1;}
+        } */
+        .bg{
+            transition: all 0.5s;
+            position: absolute;
+            width: 120%;
+            height: 120%;
+			background-image: url('https://api.hibai.cn/music/Qmusic/Music?id=000P8peU0HhORi&type=pic');
+            background-position: center;
+            filter: blur(40px);
+            left: -10%;
+            top: -20px;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+        }
+        .list{
+            position: absolute;
+            left: 5%;
+            top: 10%;
+            width: 50%;
+            height: 65%;
+            overflow-y: scroll;
+            /* overflow: hidden; */
+            /* border: 1px solid bisque; */
+        }
+        .list::-webkit-scrollbar  
+            {  
+                width: 4px;
+                height: 10px
+            }  
+            .list::-webkit-scrollbar-track  
+            {  
+                background-color: #666;
+            }  
+            .list::-webkit-scrollbar-thumb  
+            {  
+                background-color: #eee;  
+            } 
+        .songitem{
+            width: 100%;
+            height: 45px;
+            display: grid;
+            grid-template-columns: 45px 4.5fr 2fr 1fr;
+            border-bottom: 1px solid rgba(150, 150, 150, 0.1);
+        }
+        .songitem:hover{
+            background-color: rgb(155, 155, 155,0.5)
+        }
+        .songitem span{
+            cursor: default;
+            /* padding-left: 35px; */
+            margin-left: 15px;
+            display: inline-block;
+            height: 100%;
+            text-align: left;
+            line-height: 45px;
+            color: rgba(225,225,225,.8);
+        }
+        .imgwarp{
+            position: absolute;
+            width: 220px;
+            height: 190px;
+            right: 14%;
+            top: 8%;
+            font-size: 0;
+        }
+        .imgwarp img{
+            display: inline-block;
+        }
+        .imgwarp .songpic{
+            position: absolute;
+            width: 80%;
+            height: 100%;
+        }
+        i{
+            padding-right: 20px;
+            float: right;
+            cursor: pointer;
+
+        }
+        i:hover{
+            color: #fff;
+        }
+        .lrcwarp{
+            position: absolute;
+            width: 45%;
+            height: 40%;
+            right: 0;
+            top: calc(8% + 200px);
+            /* border:1px solid #fff; */
+            text-align: center;
+            overflow: hidden;
+        }
+        .lrcwarp p{
+            transition: all 0.3s;
+            height: 25px;
+            line-height: 20px;
+            color: rgba(225,225,225,.8);
+            font-size: 14px;
+        }
+        .lrcwarp p.showing{
+            font-size: 15px;
+            color: skyblue
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <div class="bg"></div>
+        <div class="list">
+            <div class="songitem" v-for="(item,index) in songs" @mouseover="itemhover(index)" @mouseleave="itemleave" title="love you MM">
+                <span>{{index==0? '' : index}}</span>
+                <span>{{item.title}}<i @click="pasue" class="iconfont icon-pause" v-show="index==singindex && pauseshow"></i>><i @click="startplay(item,index)" v-show="index==hoverindex && (index!=singindex || !pauseshow)" class="iconfont icon-bofang"></i></span>
+                <span>{{item.author}}</span>
+                <span>{{item.time}}</span>
+            </div>
+        </div>
+        <div class="imgwarp">
+            <img class="songpic" :src="imgurl" alt="">
+            <img src="http://ainyi.com:7654/Lily_music/images/album_cover_player.png" alt="">
+        </div>
+        <div class="lrcwarp">
+            <p :style="index==0 ? `margin-top:${ptop}px` :''" v-for="(item,index) in lrcArr" :sec="item.substring(0,3)">{{item.substring(3)}}</p>
+        </div>
+        <audio style="display: none" controls :src="playingsong"></audio>
+    </div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                pauseshow:true,
+                singindex:null,
+                ptop:0,
+                showingsec:null,
+                form:null,
+                imgurl:'http://ainyi.com:7654/Lily_music/images/player_cover.png',
+                songs:[{title:'歌曲',author:'歌手',time:'时长'}],
+                hoverindex:null,
+                playingsong:'',
+                lrcArr:[]
+            }
+        },
+        mounted() {
+            let form = new FormData
+            form.append('TransCode','020337')
+            form.append('OpenId','Test')
+            this.form = form
+            axios.post('https://api.hibai.cn/api/index/index',form).then(res=>{
+                this.songs = this.songs.concat(res.data.Body) 
+            })
+        },
+        methods:{
+            pasue(){
+                let audio = document.getElementsByTagName('audio')[0]
+                this.pauseshow = false
+                audio.pause()                
+            },
+            itemhover(index){
+                if(index != 0){
+                    this.hoverindex = index
+                }
+            },
+            itemleave(){
+                this.hoverindex = null
+            },
+            startplay(item,index){
+                this.singindex = index
+                this.imgurl = item.pic
+                // document.getElementsByClassName('bg')[0].style.backgroundImage = `url(${this.imgurl})`
+                // console.log(bg)
+                this.ptop = 0
+                this.creatLrc(item.lrc)
+                let audio = document.getElementsByTagName('audio')[0]
+                audio.addEventListener('timeupdate',()=>{
+                    this.showingsec = audio.currentTime.toString().split('.')[0].padStart(3,0)
+                    let domp = document.querySelector(`p[sec="${this.showingsec}"]`)
+                    let plist = document.getElementsByClassName('showing')
+                    if(domp){
+                        let ind = this.lrcArr.indexOf(domp.attributes.sec.value + domp.innerHTML)
+                        // console.log(ind)
+                        if(ind > 4){
+                            this.ptop = -(ind - 4)*25
+                        }else{
+                            this.ptop = 0
+                        }
+                        // console.log(domp.attributes.sec.value,domp.innerHTML)
+                        // console.log(domp.offsetTop)
+                        if(domp.offsetTop==75 && ind != 3){
+                            this.ptop -= 25
+                        }
+                        if(plist[0]){
+                            Array.from(plist).forEach(ele=>{
+                                ele.classList.remove('showing')
+                            })
+                        }
+                        domp.classList.add('showing')
+                        // if(domp.previousSibling){
+                        //     domp.previousSibling.classList.remove('showing')
+                        // }
+                    }
+                    // console.log(this.showingsec)
+                })
+                this.playingsong = item.url
+                setTimeout(()=>{
+                    audio.play()
+                },100)
+                let img = new Image
+                img.src = this.imgurl
+                img.onload = ()=>{
+                    document.getElementsByClassName('bg')[0].style.backgroundImage = `url(${this.imgurl})`
+                }
+            },
+            creatLrc(lrc){
+                this.lrcArr=[]
+                axios.post(lrc,this.form).then(res=>{
+                    let arr = res.data.split('\n')
+                    arr.splice(0,5)
+                    arr.forEach(ele=>{
+                        this.lrcArr.push(ele)
+                        let len = this.lrcArr.length
+                        if(len>1 && this.lrcArr[len-2].substring(0,6)==this.lrcArr[len-1].substring(0,6)){
+                            this.lrcArr.splice(-2,1)
+                        }
+                    })
+                    this.lrcArr=this.lrcArr.map(ele=>{
+                        // console.log(ele.substring(10))
+                        let sec = ele.substring(1,3)*60 + ele.substring(4,6)*1
+                        sec = sec.toString().padStart(3,0)
+                        let text = ele.substring(10)
+                        return sec+text
+                    })
+                    // console.log(this.lrcArr)
+                })
+            }
+        }
+    })
+</script>
+</html>

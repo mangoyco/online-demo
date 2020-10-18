@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        *{
+            margin: 0%;
+            padding: 0;
+        }
+        /* html,body{
+            height: 100%;
+        } */
+        .game{
+            margin: 0 auto;
+            position: relative;
+        }
+        .item{
+            width: 45px;
+            height: 45px;
+            position: absolute;
+            background-size: 100%;
+        }
+        .item.rightposition{
+            border: 1px solid skyblue;
+            box-sizing: border-box;
+        }
+        .item.player{
+            background-image: url('imgs/player.png')
+        }
+        .item.wall{
+            background-image: url('imgs/wall.jpg')
+        }
+        .item.rightbox{
+            background-image: url('imgs/over_box.png')
+        }
+        .item.box{
+            background-image: url('imgs/box.png')
+        }
+    </style>
+</head>
+<body>
+    <div class="game">
+
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
