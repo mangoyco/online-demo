@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>background</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      background-image: url('./img/bg.jpg');
+      /* background-color: black; */
+    }
+
+    .animations {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .animations div.wall {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      background-repeat: no-repeat;
+    }
+
+    div.wall.anim_fall {
+      /* background: url('./img/foreground.png'); */
+      background: url('./img/midground.png');
+      animation: fall 300s linear infinite;
+    }
+
+    div.wall.anim_fall_slow{
+      background: url('./img/midground.png');
+      animation: fall_slow 500s linear infinite;
+    }
+
+    @keyframes fall {
+      0% {
+        background-position: 0 0;
+      }
+
+      /* 25% {
+      background-position: -25% 150%;
+      }
+      50% {
+      background-position: -50% 300%;
+      }
+
+      75% {
+      background-position: -25% 450%;
+      } */
+
+      100% {
+        background-position: 0 600%;
+      }
+    }
+
+    @keyframes fall_slow {
+      0% {
+        background-position: -4% 0;
+      }
+
+      25% {
+        background-position: 25% 150%;
+      }
+      50% {
+        background-position: 50% 300%;
+      }
+
+      75% {
+        background-position: 25% 450%;
+      }
+
+      100% {
+        background-position: -4% 600%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="animations">
+    <div class="wall anim_fall"></div>
+    <!-- <div class="wall anim_fall_slow"></div> -->
+  </div>
+</body>
+
+</html>
