@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .map{
+      display: grid;
+      grid-template-columns: repeat(5,50px);
+      grid-template-rows: repeat(5,50px);
+    }
+    .block{
+      border: 1px solid black;
+      margin-left: -1px;
+      margin-top: -1px;
+      border-collapse: collapse;
+      font-size: 12px;
+      line-height: 46px;
+    }
+  </style>
+</head>
+<body>
+  <div class="map" style="width: 250px;height: 250px;">
+  </div>
+  <button onclick="main()">计算路径</button>
+  <script>
+    // 0是路 1是障碍物 2是终点 起点为（0,0）
+    var map = [
+      [0,0,0,0,0],
+      [0,0,1,1,0],
+      [0,1,0,0,0],
+      [1,0,0,1,0],
+      [0,1,2,0,0],
+    ]
+    var book = [[],[],[],[],[]]
+    var steps = [
+      {x:-1,y:0},// 向上走
+      {x:0,y:-1},// 向左走
+      {x:0,y:1},// 向右走
+      {x:1,y:0},// 向下走
+    ]
+
+    var minstep = 30
+    var best
+
+    function main(){
+      book[0][0] = true
+      dfs(0,0,0)
+      console.log(minstep)
+      if(!best){
+        alert('目前无法到达')
+        return
+      }
+      var blockList = document.getElementsByClassName('block')
+      JSON.parse(best).forEach((row,x)=>{
+        row.forEach((col,y)=>{
+          if(col === true){
+            const num = x * 5 + y
+            blockList[num].style.backgroundColor = '#03a8b1'
+          }
+        })
+      })
+    }
+
+    function dfs(n,m,step){
+      if(step + 1 > minstep) // 这里是我的憨憨优化，为选出最优解
+        return
+      if(map[n][m] === 2){ // 出发地就是目的地
+        step < minstep ? minstep = step : null
+        return
+      }
+
+      for (const item of steps) {
+        let nx = n + item.x
+        let ny = m + item.y
+        if(nx < 0 || nx> 4 || ny < 0 || ny> 4){
+          continue
+        }
+        if(map[nx][ny] === 2){
+          if((step + 1) < minstep){
+            minstep = step + 1
+          }
+          book[nx][ny] = true
+          best = JSON.stringify(book)
+          return
+        }
+        if(map[nx][ny] === 1 || book[nx][ny] === true){
+          continue
+        }
+
+        if(map[nx][ny] === 0){
+          book[nx][ny] = true
+          dfs(nx,ny,step+1)
+          book[nx][ny] = undefined
+        }
+      }
+    }
+
+    var container = document.getElementsByClassName('map')[0]
+    function render(){
+      map.forEach(row=>{
+        row.forEach(item=>{
+          let b = document.createElement('div')
+          b.className = 'block'
+          if(item === 1)
+            // b.style.backgroundColor = 'orange'
+            b.innerText= 'danger!'
+          if(item === 2)
+            b.innerText= 'target!'
+          container.appendChild(b)
+        })
+      })
+    }
+    render()
+  </script>
+</body>
+</html>
