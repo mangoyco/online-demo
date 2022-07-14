@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poor guy</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            color: #666;
+            box-sizing: border-box;
+        }
+        ul.month{
+            list-style: none;
+        }
+        ul.month li{
+            padding: 1rem;
+            padding-bottom: 0;
+            width: 100%;
+            border: 1px solid #eee;
+            /* transition: height .3s; */
+        }
+        div.title{
+            margin-bottom: 1rem;
+        }
+        div.detail{
+            display: none;
+            width: 100%;
+            min-height: 0;
+            transition: height 6s;
+            padding-bottom: 20px;
+        }
+        div.detail.open{
+            display: block;
+            min-height: 160px;
+        }
+        div.liushui-item{
+            margin-bottom: 12px;
+            line-height: 1.5rem;
+        }
+        div.liushui-item span{
+            color: salmon;
+        }
+        input[type=text]{
+            border: 1px solid #eee;
+            outline: none;
+            height: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        input.remark{
+            width: 30%;
+        }
+        input.count{
+            width: 15%;
+        }
+        button{
+            background-color: #fff;
+            outline: none;
+            border: 1px solid #eee;
+            padding: 0 1rem;
+            text-align: center;
+            line-height: 1.4rem;
+            transition: all .5s;
+        }
+        button.del{
+            width: 0;
+            padding: 0 0;
+            overflow: hidden;
+            border: none;
+        }
+        button.danger{
+            background-color: tomato;
+            color: #eee;
+            border-radius: 5px;
+        }
+        span.liushui-num{
+            padding-left: 12px;
+        }
+    </style>
+</head>
+<body>
+    <ul class="month" id="list">
+    </ul>
+    All：<span id="allCount"></span>
+    <script>
+        let protected = localStorage.getItem('protected') || 0
+        const ul = document.getElementById('list')
+        const allSpan = document.getElementById('allCount')
+        const rootData = JSON.parse(localStorage.getItem('rootData')) || createInitData()
+        const shouldLength = new Date().getMonth() + 2
+        if(rootData.length < shouldLength){
+            const lessNum = shouldLength - rootData.length
+            for (let index = 0; index < lessNum; index++) {
+                rootData.push({ gongzi:'',huabei:'',liushui:[] })
+            }
+        }
+
+        // function protectedToggle(){
+        //     if(protected == '1'){
+        //         allSpan.innerText = "****"
+        //     }else{
+        //         calcAll()
+        //     }
+        // }
+
+        allSpan.addEventListener('click',()=>{
+            protected = 1 - protected
+            localStorage.setItem('protected', protected)
+            calcAll()
+        })
+
+        function createInitData(){
+            const monthNow = new Date().getMonth() + 1
+            const arr = new Array(monthNow + 1).fill(null).map(e=>({ gongzi:'',huabei:'',liushui:[] }))
+            arr[0] = null
+            return arr
+        }
+
+        function showTrigger(month){
+            const div = document.getElementById('detail-' + month)
+            div.classList.contains('open') ? div.classList.remove('open') : div.classList.add('open')
+        }
+
+        function initPage(){
+            rootData.forEach((data,index)=>{
+                if(!data){ return }
+                ul.innerHTML += `
+                <li>
+                    <div class="title" onclick="showTrigger(${index})">${index}月</div>
+                    <div class="detail" id="detail-${index}">
+                        工资：<input oninput="change(${index},'gongzi',this)" value="${data.gongzi}" type="text" name="" id="">
+                        <br>
+                        花呗：<input oninput="change(${index},'huabei',this)" value="${data.huabei}" type="text" name="" id="">
+                        <br>
+                        流水：<input type="text" name="" class="remark" id="ls-remark-${index}">
+                        金额：<input type="text" name="" class="count" id="ls-num-${index}">
+                        <button onclick="addItem(${index})">+</button>
+                        ${data.liushui.map((e,lsIndex)=>`<div class="liushui-item" ondblclick="delBtnShow(${index},${lsIndex})">
+                            <button class="danger del" id="btn-del-${index}-${lsIndex}" onclick="delLs(${index},${lsIndex})">x</button>
+                            ${e.remark}<span class="liushui-num">${e.number}</span>
+                        </div>`).join('')}
+                    </div>
+                </li>
+                `
+            })
+        }
+        initPage()
+
+        function change(month,prop,dom){
+            rootData[month][prop] = parseInt(dom.value) || 0
+            dataChange()
+        }
+
+        function addItem(month){
+            console.log(month)
+            const remarkInp = document.getElementById('ls-remark-' + month)
+            const numInp = document.getElementById('ls-num-' + month)
+            const remark = remarkInp.value
+            const num = numInp.value
+            if(remark && num){
+                const lsIndex = rootData[month].liushui.length
+                const div = document.getElementById('detail-' + month)
+                const frag = document.createElement('fragment')
+                frag.innerHTML = `
+                    <div class="liushui-item" ondblclick="delBtnShow(${month},${lsIndex})">
+                        <button class="danger del" id="btn-del-${month}-${lsIndex}" onclick="delLs(${month},${lsIndex})">x</button>
+                        ${remark}<span class="liushui-num">${num}</span>
+                    </div>
+                `
+                div.appendChild(frag.firstElementChild)
+                remarkInp.value = ''
+                numInp.value = ''
+                rootData[month].liushui.push({
+                    remark,
+                    number:num
+                })
+                dataChange()
+            }
+        }
+
+        function dataChange(){
+            localStorage.setItem('rootData',JSON.stringify(rootData))
+            calcAll()
+        }
+
+        function calcAll(){
+            if(protected == '1'){ 
+                allSpan.innerText = "****"
+                return
+            }
+            let res = 0
+            rootData.forEach(data=>{
+                if(!data){return}
+                res += data.gongzi
+                res -= data.huabei
+                data.liushui && data.liushui.forEach(item=>{
+                    res += parseInt(item.number)
+                })
+            })
+            allSpan.innerText = res
+        }
+        calcAll()
+
+        function delBtnShow(month,lsIndex){
+            const btn = document.getElementById('btn-del-' + month + '-' + lsIndex)
+            btn.classList.contains('del') ? btn.classList.remove('del') : btn.classList.add('del')
+        }
+        function delLs(month,lsIndex){
+            const detailDiv = document.getElementById('detail-'+month)
+            const lsDiv = detailDiv.getElementsByClassName('liushui-item')[lsIndex]
+            detailDiv.removeChild(lsDiv)
+            rootData[month].liushui.splice(lsIndex,1)
+            dataChange()
+        }
+
+        function saveToJSON(){
+            const jsonText = JSON.stringify(rootData,null,4)
+            let blob = new Blob([jsonText])
+            const a = document.createElement('a')
+            a.href = window.URL.createObjectURL(blob)
+            a.setAttribute('download','aaa.json')
+            a.click()
+        }
+    </script>
+</body>
+</html>
