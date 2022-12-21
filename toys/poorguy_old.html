@@ -84,26 +84,19 @@
     <ul class="month" id="list">
     </ul>
     All：<span id="allCount"></span>
-    <select name="" id="yearSelector">
-        <!-- <option value="2021">2021</option> -->
-    </select>
-    <button onclick="saveToJSON()">save</button>
     <script>
         let protected = localStorage.getItem('protected') || 0
         const ul = document.getElementById('list')
-        const g_year = new Date().getFullYear()
         const allSpan = document.getElementById('allCount')
-        const rootDataEveryYear = JSON.parse(localStorage.getItem('rootDataEveryYear')) || createInitData()
-        if(!rootDataEveryYear[g_year]){ rootDataEveryYear[g_year] = [null] }
-        createOpts()
-        let rootData = rootDataEveryYear[g_year]
+        const rootData = JSON.parse(localStorage.getItem('rootData')) || createInitData()
         const shouldLength = new Date().getMonth() + 2
         if(rootData.length < shouldLength){
-            let countDis = shouldLength - rootData.length
-            for (let index = 0; index < countDis; index++) {
+            const lessNum = shouldLength - rootData.length
+            for (let index = 0; index < lessNum; index++) {
                 rootData.push({ gongzi:'',huabei:'',liushui:[] })
             }
         }
+
         // function protectedToggle(){
         //     if(protected == '1'){
         //         allSpan.innerText = "****"
@@ -122,27 +115,7 @@
             const monthNow = new Date().getMonth() + 1
             const arr = new Array(monthNow + 1).fill(null).map(e=>({ gongzi:'',huabei:'',liushui:[] }))
             arr[0] = null
-            return {
-                [g_year]: JSON.parse(localStorage.getItem('rootData')) || arr
-            }
-        }
-        function createOpts(){
-            let selector = document.getElementById('yearSelector')
-            selector.addEventListener('change',function(){
-                console.log(this.value)
-                rootData = rootDataEveryYear[this.value]
-                console.log(rootData);
-                initPage()
-                calcAll()
-            })
-            let years = Object.keys(rootDataEveryYear)
-            years.forEach(year=>{
-                let option = document.createElement('option')
-                option.value = year
-                option.innerText = year
-                selector.appendChild(option)
-            })
-            selector.value = g_year
+            return arr
         }
 
         function showTrigger(month){
@@ -151,7 +124,6 @@
         }
 
         function initPage(){
-            ul.innerHTML = ''
             rootData.forEach((data,index)=>{
                 if(!data){ return }
                 ul.innerHTML += `
@@ -209,7 +181,6 @@
         }
 
         function dataChange(){
-            localStorage.setItem('rootDataEveryYear', JSON.stringify(rootDataEveryYear))
             localStorage.setItem('rootData',JSON.stringify(rootData))
             calcAll()
         }
