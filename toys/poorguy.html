@@ -88,11 +88,13 @@
         <!-- <option value="2021">2021</option> -->
     </select>
     <button onclick="saveToJSON()">save</button>
+    salary：<span id="salary">****</span>
     <script>
         let protected = localStorage.getItem('protected') || 0
         const ul = document.getElementById('list')
         const g_year = new Date().getFullYear()
         const allSpan = document.getElementById('allCount')
+        const salarySpan = document.getElementById('salary')
         const rootDataEveryYear = JSON.parse(localStorage.getItem('rootDataEveryYear')) || createInitData()
         if(!rootDataEveryYear[g_year]){ rootDataEveryYear[g_year] = [null] }
         createOpts()
@@ -116,6 +118,18 @@
             protected = 1 - protected
             localStorage.setItem('protected', protected)
             calcAll()
+        })
+        salarySpan.addEventListener("click",function(){
+            if(this.innerText !== '****'){ 
+                this.innerText = '****'
+                return
+            }
+            let count = 0
+            rootData.forEach(data => {
+                if (!data) { return }
+                count += (data.gongzi - 0)
+            })
+            this.innerText = count
         })
 
         function createInitData(){
